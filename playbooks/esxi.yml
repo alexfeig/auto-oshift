@@ -1,0 +1,11 @@
+---
+- name: Performing ESXi Installation
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - role: esxi/prereq
+      when: hypervisor == 'esxi'
+    - role: esxi/packer
+      when: hypervisor == 'esxi'
+    - role: esxi/init
+      when: hypervisor == 'esxi'

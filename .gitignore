@@ -1,0 +1,9 @@
+**/.DS_Store
+*.retry
+logs/*.log
+files/templates/
+files/*.ini
+packer_cache/
+*.iso
+creds.yml
+roles/openshift-ansible

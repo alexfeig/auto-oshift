@@ -1,0 +1,7 @@
+openshift_node_group_name: "node-config-master"
+oshift_disk_size: "40"
+openshift_public_hostname: 192-168-70-70.nip.io
+
+# Set for GCP
+# ansible_ssh_user: "alexf"
+gcp_instance_size: "n1-standard-4"

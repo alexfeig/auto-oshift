@@ -1,0 +1,6 @@
+---
+- name: GCP | Installing Red Hat Subscription Manager
+  yum:
+    name: "subscription-manager"
+  ignore_errors: yes # For some reason, this image doesn't like EPEL
+  when: operating_system == 'rhel'

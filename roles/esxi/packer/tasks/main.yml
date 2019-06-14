@@ -1,0 +1,58 @@
+---
+- name: ESXi | Gathering VM list
+  vmware_vm_facts:
+    hostname: "{{ esxi_hostname }}"
+    username: "{{ esxi_username }}"
+    password: "{{ esxi_password }}"
+    validate_certs: false
+  register: vm_list
+
+- name: ESXi | Checking to see if VMs already exist
+  debug:
+    msg: "{{ item }}: {{ vm_list['virtual_machines']['%s'| format(item)]['uuid'] }}"
+  loop: "{{ groups['nodes'] }}"
+  ignore_errors: true
+  register: vm
+
+- name: Packer | Creating directories
+  file:
+    path: "../files/templates/{{ item }}"
+    state: directory
+  loop: "{{ groups['nodes'] }}"
+  when: vm is failed
+
+- name: Packer | Creating templates
+  template:
+    src: packer_template.j2
+    dest: "../files/templates/{{ item }}/{{ item }}_template.json"
+  loop: "{{ groups['nodes'] }}"
+  when: vm is failed
+
+- name: Packer | Generating kickstart configuration
+  template:
+    src: kickstart.j2
+    dest: "../files/templates/{{ item }}/{{ item }}_kickstart.ks"
+    mode: +x
+  loop: "{{ groups['nodes'] }}"
+  when: vm is failed
+
+- name: "Packer | Creating VM's"
+  shell: PACKER_LOG=1 packer build ../files/templates/{{ item }}/{{ item }}_template.json > ../logs/{{ item }}.log 2>&1
+  loop: "{{ groups['nodes'] }}"
+  when: vm is failed
+  ignore_errors: true
+  async: 1000
+  poll: 0
+  register: packer_install
+  tags:
+    - skip_ansible_lint   # PACKER_LOG does work.
+
+- name: "Packer | Waiting for VMs to finish building"
+  async_status:
+     jid: "{{ item.ansible_job_id }}"
+  register: results
+  retries: 500
+  delay: 15
+  until: results.finished
+  loop: "{{ packer_install.results }}"
+  when: vm is failed

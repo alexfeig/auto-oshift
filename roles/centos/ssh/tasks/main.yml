@@ -1,0 +1,15 @@
+---
+- name: SSH | Adding public keys to authorized hosts
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ lookup('file', '~/.ssh/k8s.pub') }}"
+
+- name: SSH | Copying public/private keys to nodes
+  copy:
+    src: "~/.ssh/{{ item.src }}"
+    dest: "/root/.ssh/{{ item.dest }}"
+    mode: 0600
+  with_items:
+    - { src: k8s.pub, dest: id_rsa.pub }
+    - { src: k8s, dest: id_rsa }

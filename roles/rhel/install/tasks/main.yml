@@ -1,0 +1,65 @@
+---
+- include_vars: ../creds.yml
+
+- name: RHEL | Getting Public IP
+  ipify_facts:
+  register: public_ip
+  when: 
+    - hypervisor == 'gcp'
+
+- name: RHEL | Setting Hostname
+  hostname: name={{ inventory_hostname }}
+  when: 
+    - hypervisor == 'gcp'
+    - not inventory_hostname|match('(\d{1,3}\.){3}\d{1,3}')
+
+- name: RHEL | Adding hostname to /etc/hosts
+  lineinfile:
+    dest=/etc/hosts
+    regexp="^{{ ansible_default_ipv4.address }}.+$"
+    line="{{ ipify_public_ip }} {{ inventory_hostname }}"
+  when: 
+    - hypervisor == 'gcp'
+
+- name: RHEL | Setting Pool ID based on role
+  set_fact:
+    rhsm_pool_id: "{{ rhsm_node_pool_id }}"
+  when: (hostvars.openshift_node_group_name == 'node-config-compute')
+
+- name: RHEL | Setting Pool ID based on role
+  set_fact:
+    rhsm_pool_id: "{{ rhsm_master_pool_id }}"
+  when: hostvars.openshift_node_group_name == 'node-config-master' or 'node-config-infra'
+
+- name: RHEL | Registering nodes to RHSM
+  redhat_subscription:
+    state: present
+    username: "{{ rhsm_username }}"
+    password: "{{ rhsm_password }}"
+    pool_ids: "{{ rhsm_pool_id }}"
+
+- name: RHEL | Disabling all repos
+  yum:
+    disablerepo: '*'
+
+- name: RHEL | Enabling required repos
+  rhsm_repository:
+    name:
+      - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-ose-3.11-rpms
+      - rhel-7-server-ansible-2.6-rpms
+
+- name: RHEL | Installing required packages
+  yum:
+    name: "{{ linux_prereq_packages }}"
+
+- name: RHEL | Updating packages
+  yum:
+    name: "*"
+    state: latest
+  tags:
+    - skip_ansible_lint   # Updating packages is a requirement
+
+- name: RHEL | Rebooting servers
+  reboot:

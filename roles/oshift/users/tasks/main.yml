@@ -1,0 +1,19 @@
+---
+- name: "{{ openshift_deployment_type }} | Adding cluster-admin role to user"
+  oc_adm_policy_user:
+    user: "{{ oshift_user }}"
+    resource_kind: "cluster-role"
+    resource_name: "cluster-admin"
+
+- name: "{{ openshift_deployment_type }} | Creating htpasswd user for {{ openshift_deployment_type }} console"
+  htpasswd:
+    path: /etc/origin/master/htpasswd
+    name: "{{ oshift_console_user }}"
+    password: "{{ oshift_console_password }}"
+
+- name: "{{ openshift_deployment_type }} | Restart master services"
+  command: /usr/local/bin/master-restart "{{ item }}"
+  with_items:
+    - api
+    - controllers
+  failed_when: false

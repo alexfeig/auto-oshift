@@ -1,0 +1,12 @@
+---
+- name: Preparing OpenShift Nodes
+  hosts: nodes
+  gather_facts: true
+
+  roles:
+    - role: rhel/ssh
+      when: 
+       - hypervisor == 'esxi'
+       - operating_system == 'rhel'
+    - role: rhel/install
+      when: operating_system == 'rhel'

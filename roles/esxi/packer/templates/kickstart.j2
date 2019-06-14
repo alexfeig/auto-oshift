@@ -1,0 +1,39 @@
+lang en_US
+keyboard us
+timezone America/Chicago --isUtc
+rootpw {{ oshift_root_password }} --plaintext
+#platform x86, AMD64, or Intel EM64T
+reboot
+text
+cdrom
+bootloader --location=mbr --append="rhgb quiet crashkernel=auto"
+zerombr
+clearpart --all --initlabel
+autopart
+network --device=eth0 --bootproto=static --ip={{ hostvars[item]['ansible_host'] }} --netmask={{ oshift_netmask }} --gateway={{ oshift_gateway }} --nameserver={{ oshift_nameserver }} --hostname={{ item }}
+auth --passalgo=sha512 --useshadow
+selinux --enforcing
+firewall --disabled
+skipx
+firstboot --disable
+%packages
+@base
+-cryptsetup
+-dosfstools
+-mlocate
+-mdadm
+-dmraid
+-libstoragemgmt
+-hunspell-en
+-tcsh
+-ledmon
+-smartmontools
+-rfkill
+-rfkill
+-pesign
+-rhnsd
+-blktrace
+-libreport-plugin-mailx
+-nano
+-hunspell
+%end

@@ -1,0 +1,6 @@
+---
+- name: "Preparing {{ openshift_deployment_type }} Nodes"
+  hosts: masters
+  gather_facts: false
+  roles:
+    - oshift/users

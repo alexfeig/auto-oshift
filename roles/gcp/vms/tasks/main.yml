@@ -1,0 +1,71 @@
+---
+- include_vars: ../creds.yml
+
+- name: GCP | Creating disks
+  gcp_compute_disk:
+    name: "{{ inventory_hostname_short }}-disk"
+    size_gb: "{{ oshift_disk }}"
+    type: "{{ gcp_disk_type }}"
+    source_image: "{{ gcp_image }}"
+    zone: "{{ gcp_zone }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_auth_kind }}"
+    service_account_file: "{{ gcp_service_account_file }}"
+    scopes:
+      - https://www.googleapis.com/auth/compute
+    state: present
+  register: disk
+  delegate_to: localhost
+
+- name: GCP | Creating addresses
+  gcp_compute_address:
+    name: "{{ inventory_hostname_short }}-address"
+    project: "{{ gcp_project }}"
+    region: "{{ gcp_region }}"
+    auth_kind: "{{ gcp_auth_kind }}"
+    service_account_file: "{{ gcp_service_account_file }}"
+    scopes:
+      - https://www.googleapis.com/auth/compute
+    state: present
+  register: address
+  delegate_to: localhost
+  
+- name: GCP | Creating instances
+  gcp_compute_instance:
+    state: present
+    name: "{{ inventory_hostname_short }}"
+    machine_type: "{{ gcp_instance_size }}"
+    disks:
+      - auto_delete: true
+        boot: true
+        source: "{{ disk }}"
+    network_interfaces:
+        - access_configs:
+          - name: "External NAT"
+            nat_ip: "{{ address }}"
+            type: "ONE_TO_ONE_NAT"
+    metadata:
+      ssh-keys: "alexf:{{ gcp_ssh_key }} alexf"
+    zone: "{{ gcp_zone }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_auth_kind }}"
+    service_account_file: "{{ gcp_service_account_file }}"
+    scopes:
+      - https://www.googleapis.com/auth/compute
+  delegate_to: localhost
+  register: instance
+
+- name: GCP | Creating DNS entries
+  gcdns_record:
+    project_id: "{{ gcp_project }}"
+    credentials_file: "{{ gcp_service_account_file }}"
+    service_account_email: "{{ gcp_service_account_email }}"
+    record: "{{ inventory_hostname }}"
+    zone: "{{ gcp_dns_zone }}"
+    type: A
+    value: "{{ address.address }}"
+  delegate_to: localhost
+
+- name: GCP | Waiting for SSH to become available
+  wait_for: host="{{ inventory_hostname }}" port=22 delay=10 timeout=600
+  delegate_to: localhost

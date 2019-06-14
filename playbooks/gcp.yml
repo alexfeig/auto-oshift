@@ -1,0 +1,17 @@
+- name: Performing GCP Installation
+  hosts: nodes
+  connection: local
+  gather_facts: no
+  
+  roles:
+    - role: gcp/vms
+      when: hypervisor == 'gcp'
+
+- name: Preparing hosts for next step
+  hosts: nodes
+  gather_facts: no
+  become: true
+
+  roles:
+    - role: gcp/prereq
+      when: hypervisor == 'gcp'

@@ -1,0 +1,65 @@
+ansible_user: "root"
+ansible_password: "P@ssw0rd!"
+
+# Can be 'gcp' or 'esxi'
+hypervisor: gcp
+
+# Can be 'rhel' or 'centos'
+# NOTE: If you set RHEL, you can install either OKD or OpenShift, but if you set CentOS, you can only install OKD.
+operating_system: rhel
+
+# ESXi
+esxi_hostname: 192.168.50.15
+esxi_datastore: "nfs"
+esxi_username: "packer"
+esxi_password: "P@ssw0rd!"
+esxi_network: "oshift-cluster-2"
+esxi_vnc_port_min: 5910
+esxi_datacenter: "ha-datacenter"
+esxi_folder: "ha-datacenter"
+
+# GCP
+gcp_image: "projects/rhel-cloud/global/images/rhel-7-v20190326"
+gcp_zone: "us-central1-c"
+gcp_region: "us-central1"
+gcp_auth_kind: "serviceaccount"
+gcp_disk_type: "pd-ssd"
+gcp_network: "us-central1"
+
+# OpenShift/OKD
+oshift_root_password: "P@ssw0rd!"
+oshift_netmask: "255.255.255.0"
+oshift_gateway: "192.168.70.1"
+oshift_nameserver: "192.168.70.1"
+oshift_user: "admin"
+oshift_console_user: "admin"
+oshift_console_password: "wDg>CPHDTaGAG@qY2N7NDcK"
+oshift_cpu: "4"
+oshift_disk: "80"
+oshift_memory: "32"
+
+linux_prereq_packages:
+  - wget
+  - git
+  - net-tools
+  - bind-utils
+  - yum-utils
+  - iptables-services
+  - bridge-utils
+  - bash-completion
+  - kexec-tools
+  - sos 
+  - psacct
+  - docker-1.13.1
+  - python2-passlib
+
+# Set "true" if you want to shasum after uploading, warning this can take a long time
+shasum: false
+
+# RHEL 7.6
+# linux_iso: "rhel-server-7.6-x86_64-dvd.iso"
+# linux_shasum: "60a0be5aeed1f08f2bb7599a578c89ec134b4016cd62a8604b29f15d543a469c"
+
+# CentOS 7
+linux_iso: "CentOS-7-x86_64-DVD-1810.iso"
+linux_shasum: "38d5d51d9d100fd73df031ffd6bd8b1297ce24660dc8c13a3b8b4534a4bd291c"

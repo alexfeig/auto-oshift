@@ -1,0 +1,55 @@
+{
+    "builders": [
+      {
+        "type": "vmware-iso",
+        "name": "{{ item }}",
+        "vm_name": "{{ item }}",
+        "guest_os_type": "rhel7-64",
+        "headless": true,
+        "format": "vmx",
+        "skip_export": true,
+        "boot_command": [
+          "<esc>",
+          "<wait>linux ks=hd:/dev/fd0:{{ item }}_kickstart.ks ksdevice=eth0 net.ifnames=0 biosdevname=0<enter>"
+        ],
+        "boot_wait": "10s",
+        "cpus": "{{ oshift_cpu }}",
+        "memory": "{{ (oshift_memory|int * 1024)|int }}",
+        "disk_size": "{{ (oshift_disk|int * 1024)|int }}",
+        "disk_type_id": "thin",
+        "vmdk_name": "{{ item }}",
+        "floppy_files": [
+          "../files/templates/{{ item }}/{{ item }}_kickstart.ks"
+        ],
+        "iso_urls": [
+          "../files/{{ linux_iso }}"
+        ],
+        {% if shasum == true %}
+        "iso_checksum_type": "sha256",
+        "iso_checksum": "{{ linux_shasum }}",
+        {% else %}
+        "iso_checksum_type": "none",
+        {% endif %}
+        "remote_type": "esx5",
+        "remote_host": "{{ esxi_hostname }}",
+        "remote_datastore": "{{ esxi_datastore }}",
+        "remote_username": "{{ esxi_username }}",
+        "remote_password": "{{ esxi_password }}",
+        "vmx_data": {
+          "ethernet0.present": "true",
+          "ethernet0.addresstype": "generated",
+          "ethernet0.dvs.switchId": "50 3e ae d2 2c a8 8b 67-b2 3c 8f d3 27 17 13 7d",
+          "ethernet0.dvs.portgroupId": "dvportgroup-189"
+        },
+        "vnc_disable_password": "true",
+        "vnc_port_min": "{{ (esxi_vnc_port_min | int) + (hostvars[item]['ansible_host'].split('.')[3] | int) }}",
+        "keep_registered": true,
+        "ssh_username": "root",
+        "ssh_password": "{{ oshift_root_password }}",
+        "ssh_port": 22,
+        "ssh_wait_timeout": "10000s",
+        "shutdown_command": "echo 'root'|sudo -S shutdown -P now"
+      }
+    ]
+  }
+  

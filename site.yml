@@ -1,0 +1,8 @@
+---
+- import_playbook: playbooks/esxi.yml
+- import_playbook: playbooks/gcp.yml
+- import_playbook: playbooks/rhel.yml
+- import_playbook: playbooks/centos.yml
+- import_playbook: roles/openshift-ansible/playbooks/prerequisites.yml
+- import_playbook: roles/openshift-ansible/playbooks/deploy_cluster.yml
+- import_playbook: playbooks/oshift.yml

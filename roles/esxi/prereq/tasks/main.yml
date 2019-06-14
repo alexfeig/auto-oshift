@@ -1,0 +1,21 @@
+---
+- name: ESXi | Enabling gdb server
+  vmware_host_firewall_manager:
+    esxi_hostname: '{{ esxi_hostname }}'
+    hostname: '{{ esxi_hostname }}'
+    username: '{{ esxi_username }}'
+    password: '{{ esxi_password }}'
+    validate_certs: False
+    rules:
+      - name: gdbserver
+        enabled: True
+
+- name: ESXi | Enabling GuestIPHack
+  vmware_host_config_manager:
+    esxi_hostname: '{{ esxi_hostname }}'
+    hostname: '{{ esxi_hostname }}'
+    username: '{{ esxi_username }}'
+    password: '{{ esxi_password }}'
+    validate_certs: False
+    options:
+        'Net.GuestIPHack': '1'
